@@ -21,6 +21,7 @@
             console.log(this.myBitcoin, this.bitcoinPrice)
             return this.myBitcoin * this.bitcoinPrice;
         },
+
         fetchBitcoinPrice: mobx.action(function() {
             fetch('https://api.coindesk.com/v1/bpi/currentprice.json', {
                 method: 'get',
@@ -32,17 +33,35 @@
             });
         })
     }); 
+
+    const you = {
+        firstName: 'Eric',
+        lastName: 'Falchier',
+        get fullName () {
+            console.log('Watch me only print ONCE!!!')
+            return `${this.firstName} ${this.lastName}`;
+        },
+    }
+
+    mobx.decorate(you, {
+        firstName: mobx.observable,
+        lastName: mobx.observable,
+        fullName: mobx.computed,
+    });
+
+    const meCopy = mobx.toJS(me);
     
     setInterval(function () {
-        me.fetchBitcoinPrice();
+        //me.fetchBitcoinPrice();
     }, 10000);
 
     mobx.autorun(function () {
         $('#tb-firstName').val(me.first);
     })
-
+    
     mobx.autorun(function () {
         $('#name').text(me.fullName);
+        $('#inserted').text(you.fullName);
     });
 
     mobx.autorun(function () {
@@ -61,6 +80,7 @@
 
     $('#tb-firstName').on('keyup', function() {
         me.first = $(this).val();
+        you.firstName = $(this).val();
     });
 
 
@@ -74,7 +94,7 @@
             loanAmount: obj.loanAmount || 0,
             rate: obj.rate || 5.1,
             term: obj.term || 30
-        })
+        });
     }
     
     Loan.prototype.monthlyPayment = function () {
@@ -113,5 +133,6 @@
     $('#tb-term').on('keyup', function() {
         myLoan.term = parseFloat($(this).val()) || 0;
     });
+
 
 })(mobx, $); 
