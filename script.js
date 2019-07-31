@@ -1,24 +1,70 @@
 (function (mobx, $) {
 
-    const myName = mobx.observable({
+    //MobX 4 runs on any ES5 browser and will be actively maintained. 
+    //The MobX 4 and 5 api's are the same and 
+    //semantically can achieve the same, 
+    //but MobX 4 has some limitations.
+
+    //Name & Bitcoin
+
+    const me = mobx.observable({
         first: 'Eric',
         last: 'Falchier',
-        fullName: function () {
+        myBitcoin: 4,
+        bitcoinPrice: 0,
+        bitcoinLoading: true,
+        get fullName () {
+            console.log('Watch me only print once!')
             return `${this.first} ${this.last}`;
-        }
-    });
+        },
+        get myBitcoinValue () {
+            console.log(this.myBitcoin, this.bitcoinPrice)
+            return this.myBitcoin * this.bitcoinPrice;
+        },
+        fetchBitcoinPrice: mobx.action(function() {
+            fetch('https://api.coindesk.com/v1/bpi/currentprice.json', {
+                method: 'get',
+            })
+            .then(resp => resp.json())
+            .then(data => {
+                this.bitcoinLoading = false;
+                this.bitcoinPrice = data.bpi.USD.rate_float;
+            });
+        })
+    }); 
+    
+    setInterval(function () {
+        me.fetchBitcoinPrice();
+    }, 10000);
 
     mobx.autorun(function () {
-        $('#tb-firstName').val(myName.first);
+        $('#tb-firstName').val(me.first);
     })
 
     mobx.autorun(function () {
-        $('#name').text(myName.fullName());
+        $('#name').text(me.fullName);
     });
 
-    $('#tb-firstName').on('keyup', function() {
-        myName.first = $(this).val();
+    mobx.autorun(function () {
+        if(me.bitcoinLoading) {
+            return false;
+        } else {
+            $('#bc-val').text(me.myBitcoinValue);
+        }
     });
+
+
+    //computed
+    setInterval(function () {
+        console.log(me.fullName)
+    }, 1000)
+
+    $('#tb-firstName').on('keyup', function() {
+        me.first = $(this).val();
+    });
+
+
+    //Loan
     
     const createLoan = new Loan({});
     const myLoan = mobx.observable(createLoan); 
